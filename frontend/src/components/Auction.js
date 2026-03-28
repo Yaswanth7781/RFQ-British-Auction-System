@@ -7,39 +7,74 @@ const socket = io("https://rfq-british-auction-system.onrender.com");
 function Auction() {
   const [bids, setBids] = useState([]);
   const [price, setPrice] = useState("");
-  const [rfqId, setRfqId] = useState(1);
+  const [rfqs, setRfqs] = useState([]);
+  const [selectedRfq, setSelectedRfq] = useState(null);
   const [auctionClosed, setAuctionClosed] = useState(false);
 
+  // 🔥 Fetch RFQs
   useEffect(() => {
-    
-    socket.on("auction_update", (data) => {
-      setBids(data.bids);
-    });
-    const handleClose = (data) => {
-      if (data.rfq_id === rfqId) {
-        setAuctionClosed(true);
-        alert("Auction Closed!");
-        socket.off("auction_closed", handleClose); 
+    const fetchRFQs = async () => {
+      try {
+        const res = await API.get("/rfq");
+        setRfqs(res.data);
+
+        if (res.data.length > 0) {
+          setSelectedRfq(res.data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching RFQs:", err);
       }
     };
 
+    fetchRFQs();
+  }, []);
+
+  // 🔥 Socket handling
+  useEffect(() => {
+    if (!selectedRfq) return;
+
+    const handleUpdate = (data) => {
+      if (data.rfq_id === selectedRfq.id) {
+        setBids(data.bids);
+      }
+    };
+
+    const handleClose = (data) => {
+      if (data.rfq_id === selectedRfq.id) {
+        setAuctionClosed(true);
+        alert("Auction Closed!");
+        socket.off("auction_closed", handleClose); // prevent repeat
+      }
+    };
+
+    socket.on("auction_update", handleUpdate);
     socket.on("auction_closed", handleClose);
 
     return () => {
-      socket.off("auction_update");
+      socket.off("auction_update", handleUpdate);
       socket.off("auction_closed", handleClose);
     };
-  }, [rfqId]);
+  }, [selectedRfq]);
 
   const placeBid = async () => {
+    if (!selectedRfq) {
+      alert("Please select an auction");
+      return;
+    }
+
     if (auctionClosed) {
       alert("Auction already closed!");
       return;
     }
 
+    if (!price) {
+      alert("Enter a valid price");
+      return;
+    }
+
     try {
       await API.post("/bid", {
-        rfq_id: rfqId,
+        rfq_id: selectedRfq.id,
         supplier_id: 1,
         price: Number(price)
       });
@@ -55,14 +90,30 @@ function Auction() {
     <div className="card">
       <h2>Auction</h2>
 
-      <div className="input-group">
-        <input
-          placeholder="RFQ ID"
-          type="number"
-          value={rfqId}
-          onChange={(e) => setRfqId(Number(e.target.value))}
-        />
+      {/* 🔥 No RFQ case */}
+      {rfqs.length === 0 && <p>No auctions available</p>}
 
+      {/* 🔥 Dropdown */}
+      {rfqs.length > 0 && (
+        <select
+          value={selectedRfq?.id || ""}
+          onChange={(e) => {
+            const rfq = rfqs.find(r => r.id === Number(e.target.value));
+            setSelectedRfq(rfq);
+            setAuctionClosed(false);
+            setBids([]);
+          }}
+        >
+          {rfqs.map((rfq) => (
+            <option key={rfq.id} value={rfq.id}>
+              {rfq.name} (ID: {rfq.id})
+            </option>
+          ))}
+        </select>
+      )}
+
+      {/* 🔥 Bid input */}
+      <div className="input-group">
         <input
           placeholder="Enter price"
           type="number"
@@ -75,7 +126,7 @@ function Auction() {
         </button>
       </div>
 
-      {/* Show status */}
+      {/* 🔥 Status */}
       {auctionClosed && (
         <p style={{ color: "red", fontWeight: "bold" }}>
           Auction Closed
