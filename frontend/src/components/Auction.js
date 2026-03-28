@@ -9,27 +9,44 @@ function Auction() {
   const [price, setPrice] = useState("");
   const [rfqs, setRfqs] = useState([]);
   const [selectedRfq, setSelectedRfq] = useState(null);
-  const [auctionClosed, setAuctionClosed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
 
-  // 🔥 Fetch RFQs
+
   useEffect(() => {
     const fetchRFQs = async () => {
-      try {
-        const res = await API.get("/rfq");
-        setRfqs(res.data);
+      const res = await API.get("/rfq");
+      setRfqs(res.data);
 
-        if (res.data.length > 0) {
-          setSelectedRfq(res.data[0]);
-        }
-      } catch (err) {
-        console.error("Error fetching RFQs:", err);
+      if (res.data.length > 0) {
+        setSelectedRfq(res.data[0]);
       }
     };
 
     fetchRFQs();
   }, []);
 
-  // 🔥 Socket handling
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!selectedRfq) return;
+
+      const now = new Date();
+      const closeTime = new Date(selectedRfq.close_time);
+
+      const diff = closeTime - now;
+
+      if (diff <= 0) {
+        setTimeLeft("Auction Expired");
+      } else {
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${mins}m ${secs}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [selectedRfq]);
+
   useEffect(() => {
     if (!selectedRfq) return;
 
@@ -39,36 +56,18 @@ function Auction() {
       }
     };
 
-    const handleClose = (data) => {
-      if (data.rfq_id === selectedRfq.id) {
-        setAuctionClosed(true);
-        alert("Auction Closed!");
-        socket.off("auction_closed", handleClose); // prevent repeat
-      }
-    };
-
     socket.on("auction_update", handleUpdate);
-    socket.on("auction_closed", handleClose);
 
     return () => {
       socket.off("auction_update", handleUpdate);
-      socket.off("auction_closed", handleClose);
     };
   }, [selectedRfq]);
 
   const placeBid = async () => {
-    if (!selectedRfq) {
-      alert("Please select an auction");
-      return;
-    }
+    if (!selectedRfq) return;
 
-    if (auctionClosed) {
-      alert("Auction already closed!");
-      return;
-    }
-
-    if (!price) {
-      alert("Enter a valid price");
+    if (timeLeft === "Auction Expired") {
+      alert("Auction already expired!");
       return;
     }
 
@@ -90,29 +89,39 @@ function Auction() {
     <div className="card">
       <h2>Auction</h2>
 
-      {/* 🔥 No RFQ case */}
-      {rfqs.length === 0 && <p>No auctions available</p>}
-
       {/* 🔥 Dropdown */}
-      {rfqs.length > 0 && (
-        <select
-          value={selectedRfq?.id || ""}
-          onChange={(e) => {
-            const rfq = rfqs.find(r => r.id === Number(e.target.value));
-            setSelectedRfq(rfq);
-            setAuctionClosed(false);
-            setBids([]);
-          }}
-        >
-          {rfqs.map((rfq) => (
-            <option key={rfq.id} value={rfq.id}>
-              {rfq.name} (ID: {rfq.id})
-            </option>
-          ))}
-        </select>
+      <select
+        value={selectedRfq?.id || ""}
+        onChange={(e) => {
+          const rfq = rfqs.find(r => r.id === Number(e.target.value));
+          setSelectedRfq(rfq);
+          setBids([]);
+        }}
+      >
+        {rfqs.map((rfq) => (
+          <option key={rfq.id} value={rfq.id}>
+            {rfq.name}
+          </option>
+        ))}
+      </select>
+
+      {/* 🔥 Show time */}
+      {selectedRfq && (
+        <p>
+          ⏳ Time Left:{" "}
+          <span style={{ color: timeLeft === "Auction Expired" ? "red" : "green" }}>
+            {timeLeft}
+          </span>
+        </p>
       )}
 
-      {/* 🔥 Bid input */}
+      {/* 🔥 Expired message */}
+      {timeLeft === "Auction Expired" && (
+        <p style={{ color: "red", fontWeight: "bold" }}>
+          🚫 This auction is expired
+        </p>
+      )}
+
       <div className="input-group">
         <input
           placeholder="Enter price"
@@ -121,17 +130,13 @@ function Auction() {
           onChange={(e) => setPrice(e.target.value)}
         />
 
-        <button onClick={placeBid} disabled={auctionClosed}>
+        <button
+          onClick={placeBid}
+          disabled={timeLeft === "Auction Expired"}
+        >
           Place Bid
         </button>
       </div>
-
-      {/* 🔥 Status */}
-      {auctionClosed && (
-        <p style={{ color: "red", fontWeight: "bold" }}>
-          Auction Closed
-        </p>
-      )}
 
       <h3>Bids</h3>
 
