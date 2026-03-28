@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import io from "socket.io-client";
 import API from "../services/api";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://rfq-british-auction-system.onrender.com");
 
 function Auction() {
   const [bids, setBids] = useState([]);
