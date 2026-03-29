@@ -116,26 +116,7 @@ function Auction() {
     <p>⏱ Extension Duration: {selectedRfq.extension_duration} min</p>
   </div>
 )}
-{/* 💰 BID SECTION */}
-{selectedRfq && (
-  <div style={{ marginTop: "15px" }}>
-    <input
-      placeholder="Enter price"
-      type="number"
-      value={price}
-      onChange={(e) => setPrice(e.target.value)}
-      disabled={timeLeft === "EXPIRED"}
-    />
 
-    <button
-      onClick={placeBid}
-      disabled={timeLeft === "EXPIRED"}
-      style={{ marginLeft: "10px" }}
-    >
-      Place Bid
-    </button>
-  </div>
-)}
       {/* ⏳ TIMER */}
       {selectedRfq && (
         <div style={{ marginTop: "10px" }}>
