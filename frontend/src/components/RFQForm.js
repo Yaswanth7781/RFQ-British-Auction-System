@@ -7,9 +7,6 @@ function RFQForm() {
     start_time: "",
     close_time: "",
     forced_close_time: "",
-    trigger_window: 5,
-    extension_duration: 5,
-    trigger_type: "ANY_BID"
   });
 
   const handleSubmit = async (e) => {
@@ -28,8 +25,8 @@ function RFQForm() {
       alert("RFQ Created!");
       window.location.reload();
 
-    } catch (error) {
-      alert(error.response?.data?.error || "Failed to create RFQ");
+    } catch (err) {
+      alert(err.response?.data?.error || "Error");
     }
   };
 
@@ -37,20 +34,42 @@ function RFQForm() {
     <div className="card">
       <h2>Create RFQ</h2>
 
-      <form onSubmit={handleSubmit}>
-        <input placeholder="Name"
-          onChange={(e)=>setForm({...form,name:e.target.value})} />
+      <form onSubmit={handleSubmit} className="form-grid">
 
-        <input type="datetime-local"
-          onChange={(e)=>setForm({...form,start_time:e.target.value})} />
+        <label>
+          RFQ Name
+          <input
+            placeholder="Enter name"
+            value={form.name}
+            onChange={(e)=>setForm({...form,name:e.target.value})}
+          />
+        </label>
 
-        <input type="datetime-local"
-          onChange={(e)=>setForm({...form,close_time:e.target.value})} />
+        <label>
+          Start Time
+          <input
+            type="datetime-local"
+            onChange={(e)=>setForm({...form,start_time:e.target.value})}
+          />
+        </label>
 
-        <input type="datetime-local"
-          onChange={(e)=>setForm({...form,forced_close_time:e.target.value})} />
+        <label>
+          Close Time
+          <input
+            type="datetime-local"
+            onChange={(e)=>setForm({...form,close_time:e.target.value})}
+          />
+        </label>
 
-        <button type="submit">Create</button>
+        <label>
+          Forced Close Time
+          <input
+            type="datetime-local"
+            onChange={(e)=>setForm({...form,forced_close_time:e.target.value})}
+          />
+        </label>
+
+        <button type="submit">Create Auction</button>
       </form>
     </div>
   );
