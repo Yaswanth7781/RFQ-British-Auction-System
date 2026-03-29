@@ -7,6 +7,9 @@ function RFQForm() {
     start_time: "",
     close_time: "",
     forced_close_time: "",
+    trigger_window: 5,
+    extension_duration: 5,
+    trigger_type: "ANY_BID"
   });
 
   const handleSubmit = async (e) => {
@@ -26,7 +29,7 @@ function RFQForm() {
       window.location.reload();
 
     } catch (err) {
-      alert(err.response?.data?.error || "Error");
+      alert(err.response?.data?.error || "Error creating RFQ");
     }
   };
 
@@ -36,6 +39,7 @@ function RFQForm() {
 
       <form onSubmit={handleSubmit} className="form-grid">
 
+        {/* Name */}
         <label>
           RFQ Name
           <input
@@ -45,6 +49,7 @@ function RFQForm() {
           />
         </label>
 
+        {/* Times */}
         <label>
           Start Time
           <input
@@ -67,6 +72,41 @@ function RFQForm() {
             type="datetime-local"
             onChange={(e)=>setForm({...form,forced_close_time:e.target.value})}
           />
+        </label>
+
+        {/* 🔥 NEW: Trigger Window */}
+        <label>
+          Trigger Window (minutes)
+          <input
+            type="number"
+            min="1"
+            value={form.trigger_window}
+            onChange={(e)=>setForm({...form,trigger_window:Number(e.target.value)})}
+          />
+        </label>
+
+        {/* 🔥 NEW: Extension Duration */}
+        <label>
+          Extension Duration (minutes)
+          <input
+            type="number"
+            min="1"
+            value={form.extension_duration}
+            onChange={(e)=>setForm({...form,extension_duration:Number(e.target.value)})}
+          />
+        </label>
+
+        {/* 🔥 OPTIONAL: Trigger Type */}
+        <label>
+          Trigger Type
+          <select
+            value={form.trigger_type}
+            onChange={(e)=>setForm({...form,trigger_type:e.target.value})}
+          >
+            <option value="ANY_BID">Any Bid</option>
+            <option value="RANK_CHANGE">Rank Change</option>
+            <option value="L1_CHANGE">L1 Change</option>
+          </select>
         </label>
 
         <button type="submit">Create Auction</button>
