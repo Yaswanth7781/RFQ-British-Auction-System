@@ -110,7 +110,12 @@ function Auction() {
       >
         Delete
       </button>
-
+      {selectedRfq && (
+  <div style={{ marginTop: "10px" }}>
+    <p>⚙️ Trigger Window: {selectedRfq.trigger_window} min</p>
+    <p>⏱ Extension Duration: {selectedRfq.extension_duration} min</p>
+  </div>
+)}
       {/* ⏳ TIMER */}
       {selectedRfq && (
         <div style={{ marginTop: "10px" }}>
