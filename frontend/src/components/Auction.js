@@ -68,26 +68,34 @@ function Auction() {
     }
   };
 
-  return (
-    <div className="card">
-      <h2>Auction</h2>
+return (
+  <div className="card">
+    <h2>Auction</h2>
 
-      {/* 🔍 SEARCH */}
+    {/* 🔥 TOP BAR */}
+    <div style={{
+      display: "flex",
+      gap: "10px",
+      alignItems: "center",
+      marginBottom: "15px"
+    }}>
+      
+      {/* Search */}
       <input
         placeholder="Search auction..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        style={{ marginBottom: "10px", width: "200px" }}
+        style={{ padding: "8px", width: "180px" }}
       />
 
-      {/* 🔽 DROPDOWN */}
+      {/* Dropdown */}
       <select
         value={selectedRfq?.id || ""}
         onChange={(e) => {
           const rfq = rfqs.find(r => r.id === Number(e.target.value));
           setSelectedRfq(rfq);
         }}
-        style={{ marginLeft: "10px" }}
+        style={{ padding: "8px" }}
       >
         {filtered.map(rfq => (
           <option key={rfq.id} value={rfq.id}>
@@ -96,46 +104,74 @@ function Auction() {
         ))}
       </select>
 
-      {/* 🗑️ DELETE BUTTON */}
+      {/* Delete */}
       <button
         onClick={deleteAuction}
         style={{
           backgroundColor: "red",
           color: "white",
-          marginLeft: "10px",
-          padding: "6px 10px",
+          padding: "8px 12px",
           border: "none",
-          cursor: "pointer"
+          borderRadius: "5px"
         }}
       >
         Delete
       </button>
-      {selectedRfq && (
-  <div style={{ marginTop: "10px" }}>
-    <p>⚙️ Trigger Window: {selectedRfq.trigger_window} min</p>
-    <p>⏱ Extension Duration: {selectedRfq.extension_duration} min</p>
-  </div>
-)}
-
-      {/* ⏳ TIMER */}
-      {selectedRfq && (
-        <div style={{ marginTop: "10px" }}>
-          <p>
-            ⏳ Time Left:{" "}
-            <span style={{ color: timeLeft === "EXPIRED" ? "red" : "green" }}>
-              {timeLeft}
-            </span>
-          </p>
-
-          {timeLeft === "EXPIRED" && (
-            <p style={{ color: "red", fontWeight: "bold" }}>
-              🚫 Auction is Expired
-            </p>
-          )}
-        </div>
-      )}
     </div>
-  );
-}
 
+    {/* 🔥 CONFIG */}
+    {selectedRfq && (
+      <div style={{ marginBottom: "10px" }}>
+        <p>⚙️ Trigger Window: <b>{selectedRfq.trigger_window} min</b></p>
+        <p>⏱ Extension Duration: <b>{selectedRfq.extension_duration} min</b></p>
+      </div>
+    )}
+
+    {/* 🔥 TIMER */}
+    {selectedRfq && (
+      <div style={{ marginBottom: "15px" }}>
+        <p>
+          ⏳ Time Left:{" "}
+          <span style={{ color: timeLeft === "EXPIRED" ? "red" : "green" }}>
+            {timeLeft}
+          </span>
+        </p>
+
+        {timeLeft === "EXPIRED" && (
+          <p style={{ color: "red", fontWeight: "bold" }}>
+            🚫 Auction is Expired
+          </p>
+        )}
+      </div>
+    )}
+
+    {/* 🔥 BID SECTION */}
+    {selectedRfq && (
+      <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+        <input
+          placeholder="Enter price"
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          disabled={timeLeft === "EXPIRED"}
+          style={{ padding: "8px" }}
+        />
+
+        <button
+          onClick={placeBid}
+          disabled={timeLeft === "EXPIRED"}
+          style={{
+            backgroundColor: "#2563eb",
+            color: "white",
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "5px"
+          }}
+        >
+          Place Bid
+        </button>
+      </div>
+    )}
+  </div>
+);
 export default Auction;
