@@ -68,6 +68,34 @@ function Auction() {
     }
   };
 
+  const placeBid = async () => {
+  if (!selectedRfq) return;
+
+  if (timeLeft === "EXPIRED") {
+    alert("Auction expired!");
+    return;
+  }
+
+  if (!price) {
+    alert("Enter price");
+    return;
+  }
+
+  try {
+    await API.post("/bid", {
+      rfq_id: selectedRfq.id,
+      supplier_id: 1,
+      price: Number(price)
+    });
+
+    alert("Bid placed!");
+    setPrice("");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to place bid");
+  }
+};
+
 return (
   <div className="card">
     <h2>Auction</h2>
