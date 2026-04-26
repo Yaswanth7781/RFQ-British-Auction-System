@@ -39,7 +39,6 @@ function RFQForm() {
 
       <form onSubmit={handleSubmit} className="form-grid">
 
-        {/* Name */}
         <label>
           RFQ Name
           <input
@@ -49,7 +48,6 @@ function RFQForm() {
           />
         </label>
 
-        {/* Times */}
         <label>
           Start Time
           <input
@@ -74,7 +72,6 @@ function RFQForm() {
           />
         </label>
 
-        {/* 🔥 NEW: Trigger Window */}
         <label>
           Trigger Window (minutes)
           <input
@@ -85,7 +82,7 @@ function RFQForm() {
           />
         </label>
 
-        {/* 🔥 NEW: Extension Duration */}
+  
         <label>
           Extension Duration (minutes)
           <input
@@ -96,18 +93,8 @@ function RFQForm() {
           />
         </label>
 
-        {/* 🔥 OPTIONAL: Trigger Type */}
-        <label>
-          Trigger Type
-          <select
-            value={form.trigger_type}
-            onChange={(e)=>setForm({...form,trigger_type:e.target.value})}
-          >
-            <option value="ANY_BID">Any Bid</option>
-            <option value="RANK_CHANGE">Rank Change</option>
-            <option value="L1_CHANGE">L1 Change</option>
-          </select>
-        </label>
+
+        
 
         <button type="submit">Create Auction</button>
       </form>
