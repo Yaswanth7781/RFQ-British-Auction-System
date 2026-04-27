@@ -9,11 +9,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 Routes
+//Routes
 app.use("/rfq", rfqRoutes);
 app.use("/bid", bidRoutes);
 
-// ✅ Test route
+// Test route
 app.get("/", (req, res) => {
   res.send("RFQ Auction API Running");
 });
