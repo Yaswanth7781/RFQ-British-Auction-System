@@ -16,7 +16,7 @@ setInterval(async () => {
       ) {
         await db.query("UPDATE rfqs SET status='CLOSED' WHERE id=$1", [rfq.id]);
 
-        closedAuctions.add(rfq.id); // 🔥 prevent repeat
+        closedAuctions.add(rfq.id); //prevent repeat
 
         if (global.io) {
           global.io.emit("auction_closed", { rfq_id: rfq.id });
