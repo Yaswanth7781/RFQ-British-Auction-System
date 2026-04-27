@@ -8,8 +8,9 @@ function Auction() {
   const [selectedRfq, setSelectedRfq] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [price, setPrice] = useState("");
+  const [bids, setBids] = useState([]);
 
-  // 🔥 Fetch RFQs
+  //  Fetch RFQs
   useEffect(() => {
     const fetchRFQs = async () => {
       try {
@@ -27,7 +28,7 @@ function Auction() {
     fetchRFQs();
   }, []);
 
-  // 🔍 SEARCH FILTER
+  //  SEARCH FILTER
   useEffect(() => {
     const filteredData = rfqs.filter(rfq =>
       rfq.name.toLowerCase().includes(search.toLowerCase())
@@ -35,14 +36,13 @@ function Auction() {
     setFiltered(filteredData);
   }, [search, rfqs]);
 
-  // ⏳ TIMER
+  //  TIMER
   useEffect(() => {
     const interval = setInterval(() => {
       if (!selectedRfq) return;
 
       const now = new Date();
       const close = new Date(selectedRfq.close_time);
-
       const diff = close - now;
 
       if (diff <= 0) {
@@ -57,7 +57,39 @@ function Auction() {
     return () => clearInterval(interval);
   }, [selectedRfq]);
 
-  // 🗑️ DELETE
+  //  FETCH + SORT BIDS
+  const fetchBids = async () => {
+    if (!selectedRfq) return;
+
+    try {
+      const res = await API.get(`/bid/${selectedRfq.id}`);
+
+      //  SORT (LOWEST FIRST - reverse auction)
+      const sorted = res.data.sort((a, b) => a.price - b.price);
+
+      setBids(sorted);
+    } catch (err) {
+      console.error("Error fetching bids:", err);
+    }
+  };
+
+  //  Fetch bids when RFQ changes
+  useEffect(() => {
+    fetchBids();
+  }, [selectedRfq]);
+
+  //  AUTO REFRESH BIDS
+  useEffect(() => {
+    if (!selectedRfq) return;
+
+    const interval = setInterval(() => {
+      fetchBids();
+    }, 3000); // every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedRfq]);
+
+  //  DELETE
   const deleteAuction = async () => {
     if (!selectedRfq) return;
 
@@ -72,7 +104,7 @@ function Auction() {
     }
   };
 
-  // 💰 PLACE BID
+  //  PLACE BID
   const placeBid = async () => {
     if (!selectedRfq) return;
 
@@ -95,6 +127,10 @@ function Auction() {
 
       alert("Bid placed!");
       setPrice("");
+
+      //  refresh bids instantly
+      fetchBids();
+
     } catch (err) {
       console.error(err);
       alert("Failed to place bid");
@@ -105,7 +141,7 @@ function Auction() {
     <div className="card">
       <h2>Auction</h2>
 
-      {/* 🔥 TOP BAR */}
+      {/* TOP BAR */}
       <div style={{
         display: "flex",
         gap: "10px",
@@ -149,7 +185,7 @@ function Auction() {
         </button>
       </div>
 
-      {/* ⚙️ CONFIG */}
+      {/*  CONFIG */}
       {selectedRfq && (
         <div style={{ marginBottom: "10px" }}>
           <p>⚙️ Trigger Window: <b>{selectedRfq.trigger_window} min</b></p>
@@ -157,7 +193,7 @@ function Auction() {
         </div>
       )}
 
-      {/* ⏳ TIMER */}
+      {/* TIMER */}
       {selectedRfq && (
         <div style={{ marginBottom: "15px" }}>
           <p>
@@ -175,7 +211,7 @@ function Auction() {
         </div>
       )}
 
-      {/* 💰 BID SECTION (VISIBLE ALWAYS WHEN RFQ EXISTS) */}
+      {/* BID INPUT */}
       {selectedRfq && (
         <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
           <input
@@ -203,7 +239,30 @@ function Auction() {
         </div>
       )}
 
-      {/* 📊 EMPTY STATE */}
+      {/* BIDS LIST */}
+      {bids.length > 0 && (
+        <div style={{ marginTop: "15px" }}>
+          <h3>Live Bids</h3>
+
+          {bids.map((bid, index) => (
+            <div
+              key={bid.id}
+              style={{
+                padding: "10px",
+                borderBottom: "1px solid #ddd",
+                display: "flex",
+                justifyContent: "space-between",
+                backgroundColor: index === 0 ? "#d1fae5" : "white"
+              }}
+            >
+              <span>#{index + 1}</span>
+              <span>Supplier: {bid.supplier_id}</span>
+              <span><b>₹ {bid.price}</b></span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {rfqs.length === 0 && (
         <p>No auctions available</p>
       )}
