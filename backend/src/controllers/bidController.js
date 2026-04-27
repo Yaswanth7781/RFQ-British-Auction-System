@@ -36,7 +36,7 @@ exports.placeBid = async (req, res) => {
 
     let newClose = new Date(rfq.close_time);
 
-    // ⏱ extend auction
+    // extend auction
     if (inTriggerWindow) {
       let extended =
         new Date(rfq.close_time).getTime() +
@@ -54,7 +54,7 @@ exports.placeBid = async (req, res) => {
       ]);
     }
 
-    // 🔥 socket update (optional)
+    // socket update 
     if (global.io) {
       global.io.emit("auction_update", {
         bids: bids.rows,
