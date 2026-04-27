@@ -1,10 +1,14 @@
 const db = require("../config/db");
 
+// PLACE BID
 exports.placeBid = async (req, res) => {
   try {
     const { rfq_id, supplier_id, price } = req.body;
 
-    const rfqResult = await db.query("SELECT * FROM rfqs WHERE id=$1", [rfq_id]);
+    const rfqResult = await db.query(
+      "SELECT * FROM rfqs WHERE id=$1",
+      [rfq_id]
+    );
     const rfq = rfqResult.rows[0];
 
     if (!rfq) return res.status(404).send("RFQ not found");
@@ -15,11 +19,13 @@ exports.placeBid = async (req, res) => {
       return res.status(400).send("Auction closed");
     }
 
+    // insert bid
     await db.query(
       "INSERT INTO bids (rfq_id, supplier_id, price) VALUES ($1,$2,$3)",
       [rfq_id, supplier_id, price]
     );
 
+    // get sorted bids
     const bids = await db.query(
       "SELECT * FROM bids WHERE rfq_id=$1 ORDER BY price ASC, created_at ASC",
       [rfq_id]
@@ -30,6 +36,7 @@ exports.placeBid = async (req, res) => {
 
     let newClose = new Date(rfq.close_time);
 
+    // ⏱ extend auction
     if (inTriggerWindow) {
       let extended =
         new Date(rfq.close_time).getTime() +
@@ -47,6 +54,7 @@ exports.placeBid = async (req, res) => {
       ]);
     }
 
+    // 🔥 socket update (optional)
     if (global.io) {
       global.io.emit("auction_update", {
         bids: bids.rows,
@@ -58,5 +66,22 @@ exports.placeBid = async (req, res) => {
   } catch (error) {
     console.error("placeBid error:", error);
     res.status(500).send("Unable to place bid");
+  }
+};
+
+
+exports.getBidsByRfq = async (req, res) => {
+  try {
+    const { rfq_id } = req.params;
+
+    const result = await db.query(
+      "SELECT * FROM bids WHERE rfq_id=$1 ORDER BY price ASC, created_at ASC",
+      [rfq_id]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("getBids error:", error);
+    res.status(500).send("Unable to fetch bids");
   }
 };
