@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: rfq_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - rfq_network
+
+  auth-service:
+    build: ./auth-service
+    container_name: rfq_auth_service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/rfq_auction_system
+      - JWT_SECRET=rfq_super_secret_key_123
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - rfq_network
+
+  rfq-service:
+    build: ./rfq-service
+    container_name: rfq_rfq_service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongodb:27017/rfq_auction_system
+      - JWT_SECRET=rfq_super_secret_key_123
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5004
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - rfq_network
+
+  bidding-service:
+    build: ./bidding-service
+    container_name: rfq_bidding_service
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/rfq_auction_system
+      - JWT_SECRET=rfq_super_secret_key_123
+      - RFQ_SERVICE_URL=http://rfq-service:5002
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5004
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+      - rfq-service
+      - notification-service
+    networks:
+      - rfq_network
+
+  notification-service:
+    build: ./notification-service
+    container_name: rfq_notification_service
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - MONGO_URI=mongodb://mongodb:27017/rfq_auction_system
+      - JWT_SECRET=rfq_super_secret_key_123
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - rfq_network
+
+  frontend:
+    build: ./frontend
+    container_name: rfq_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - rfq_network
+
+volumes:
+  mongo_data:
+
+networks:
+  rfq_network:
+    driver: bridge

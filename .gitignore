@@ -1,0 +1,61 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build folders
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Parcel cache
+.cache/
+
+# Next.js
+.next/
+
+# React Vite
+vite.svg
+
+# Docker
+docker-data/
+
+# MongoDB local database files
+data/db/
+
+# Yarn
+.yarn/
