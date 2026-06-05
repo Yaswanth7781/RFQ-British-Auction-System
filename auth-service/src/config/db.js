@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     const mongoURI =
-      process.env.MONGO_URI || 'mongodb://mongoimage:27017/resource_tracker';
+      process.env.MONGO_URI || 'https://mongoimage.onrender.com/resource_tracker';
 
     const conn = await mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 5000
